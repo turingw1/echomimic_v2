@@ -4,6 +4,23 @@
 
 ---
 
+## 0. 目录约定
+
+| 用途 | 路径 | 说明 |
+|------|------|------|
+| 工作目录 | `~/workspace/Zhengwei/echomimic_v2` | 代码、配置、脚本 |
+| 大型文件 | `/cache/Zhengwei/echomimic_v2` | 预训练权重、FFmpeg 等大文件 |
+
+> 工作目录空间有限，预训练权重等大文件存放在 `/cache` 下，通过软链接引用。
+
+```bash
+# 创建目录结构
+mkdir -p ~/workspace/Zhengwei
+mkdir -p /cache/Zhengwei/echomimic_v2
+```
+
+---
+
 ## 1. 系统要求
 
 | 项目 | 要求 |
@@ -12,13 +29,14 @@
 | Python | 3.10（推荐），3.8 / 3.11 也可 |
 | CUDA | >= 11.7（推荐 12.4） |
 | GPU | A100(80G) / RTX4090(24G) / V100(16G)，最低 12GB 显存 |
-| 磁盘 | 预留 30GB+ 用于模型权重 |
+| 磁盘 | 预留 30GB+ 用于模型权重（存放在 /cache） |
 
 ---
 
 ## 2. 下载代码
 
 ```bash
+cd ~/workspace/Zhengwei
 git clone https://github.com/antgroup/echomimic_v2
 cd echomimic_v2
 ```
@@ -71,6 +89,7 @@ pip install --no-deps facenet_pytorch==2.6.0
 ### 方式一：下载静态编译版（推荐）
 
 ```bash
+cd /cache/Zhengwei/echomimic_v2
 wget https://www.johnvansickle.com/ffmpeg/old-releases/ffmpeg-4.4-amd64-static.tar.xz
 tar -xvf ffmpeg-4.4-amd64-static.tar.xz
 ```
@@ -78,7 +97,7 @@ tar -xvf ffmpeg-4.4-amd64-static.tar.xz
 设置环境变量（永久生效）：
 
 ```bash
-echo "export FFMPEG_PATH=$PWD/ffmpeg-4.4-amd64-static" >> ~/.bashrc
+echo "export FFMPEG_PATH=/cache/Zhengwei/echomimic_v2/ffmpeg-4.4-amd64-static" >> ~/.bashrc
 source ~/.bashrc
 ```
 
@@ -104,32 +123,43 @@ git lfs install
 
 ### 7.2 下载主模型权重
 
+权重存放到 `/cache` 下，再在工作目录中创建软链接：
+
 ```bash
+cd /cache/Zhengwei/echomimic_v2
 git clone https://huggingface.co/BadToBest/EchoMimicV2 pretrained_weights
+```
+
+```bash
+cd ~/workspace/Zhengwei/echomimic_v2
+ln -s /cache/Zhengwei/echomimic_v2/pretrained_weights ./pretrained_weights
 ```
 
 > 这步下载较大（约 15GB+），请确保网络通畅。如 HuggingFace 不可用，可使用 ModelScope：
 > ```bash
+> cd /cache/Zhengwei/echomimic_v2
 > git clone https://modelscope.cn/models/BadToBest/EchoMimicV2 pretrained_weights
 > ```
 
 ### 7.3 下载 SD-VAE-FT-MSE（如未包含在主权重中）
 
 ```bash
-git clone https://huggingface.co/stabilityai/sd-vae-ft-mse ./pretrained_weights/sd-vae-ft-mse
+cd /cache/Zhengwei/echomimic_v2/pretrained_weights
+git clone https://huggingface.co/stabilityai/sd-vae-ft-mse
 ```
 
 ### 7.4 下载 SD-Image-Variations（如未包含在主权重中）
 
 ```bash
-git clone https://huggingface.co/lambdalabs/sd-image-variations-diffusers ./pretrained_weights/sd-image-variations-diffusers
+cd /cache/Zhengwei/echomimic_v2/pretrained_weights
+git clone https://huggingface.co/lambdalabs/sd-image-variations-diffusers
 ```
 
 ### 7.5 下载 Whisper 音频模型（如未包含在主权重中）
 
 ```bash
-mkdir -p ./pretrained_weights/audio_processor
-wget -O ./pretrained_weights/audio_processor/tiny.pt https://openaipublic.azureedge.net/main/whisper/models/65147644a518d12f04e32d6f3b26facc3f8dd46e5390956a9424a650c0ce22b9/tiny.pt
+mkdir -p /cache/Zhengwei/echomimic_v2/pretrained_weights/audio_processor
+wget -O /cache/Zhengwei/echomimic_v2/pretrained_weights/audio_processor/tiny.pt https://openaipublic.azureedge.net/main/whisper/models/65147644a518d12f04e32d6f3b26facc3f8dd46e5390956a9424a650c0ce22b9/tiny.pt
 ```
 
 ---
@@ -137,6 +167,7 @@ wget -O ./pretrained_weights/audio_processor/tiny.pt https://openaipublic.azuree
 ## 8. 验证权重文件
 
 ```bash
+cd ~/workspace/Zhengwei/echomimic_v2
 ls pretrained_weights/denoising_unet.pth \
    pretrained_weights/reference_unet.pth \
    pretrained_weights/motion_module.pth \
@@ -169,6 +200,10 @@ pretrained_weights/
 ---
 
 ## 9. 运行 Demo
+
+```bash
+cd ~/workspace/Zhengwei/echomimic_v2
+```
 
 ### 方式一：Gradio Web 界面（标准版）
 
@@ -244,6 +279,7 @@ echo $FFMPEG_PATH
 ### Q: HuggingFace 下载慢或无法访问？
 使用 ModelScope 镜像替代：
 ```bash
+cd /cache/Zhengwei/echomimic_v2
 git clone https://modelscope.cn/models/BadToBest/EchoMimicV2 pretrained_weights
 ```
 
